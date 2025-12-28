@@ -6,7 +6,7 @@ FROM rust:1.92.0 AS builder
 WORKDIR /app
 
 # 现在拷贝真正的源代码
-COPY .config/config.toml ./.cargo/config.toml
+# COPY .config/config.toml ./.cargo/config.toml
 COPY . .
 
 RUN cargo check
