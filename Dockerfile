@@ -30,4 +30,4 @@ WORKDIR /app
 COPY --from=builder /app/target/release/imail ./
 
 # 设置容器启动时运行的命令
-CMD [".imail"]
+CMD ["./imail"]
