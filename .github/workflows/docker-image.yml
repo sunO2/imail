@@ -16,20 +16,14 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag imail:latest
-    # - name: Export image as tar.gz (for artifact)
-    #   run: |
-    #       if [[ $GITHUB_REF == refs/tags/* ]]; then
-    #         TAG=${GITHUB_REF#refs/tags/}
-    #         docker save imail:$TAG | gzip > imail-$TAG.tar.gz
-    #         echo "filename=imail-$TAG.tar.gz" >> $GITHUB_ENV
-    #       else
-    #         docker save imail:latest | gzip > imail-latest.tar.gz
-    #         echo "filename=imail-latest.tar.gz" >> $GITHUB_ENV
-    #       fi
+    - name: Export image as tar.gz (for artifact)
+      run: |
+            docker save imail:latest | gzip > imail-latest.tar.gz
+            echo "filename=imail-latest.tar.gz" >> $GITHUB_ENV
 
-    # - name: Upload Docker image as Artifact
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: docker-image-${{ github.sha }}
-    #     path: ${{ env.filename }}
-    #     retention-days: 30          # 保留 30 天，可调整
+    - name: Upload Docker image as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image-${{ github.sha }}
+        path: ${{ env.filename }}
+        retention-days: 30          # 保留 30 天，可调整
