@@ -1,0 +1,19 @@
+[package]
+name = "imail"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+imap = { version = "3.0.0-alpha.15" }  # 最新版检查 crates.io
+mail-parser = "0.11.1"
+lettre = "0.11.19" # smtp 邮件发送
+tokio = { version = "1", features = ["full"] }
+native-tls = "0.2"  # TLS 支持，或用 rustls-tls feature
+chrono = "0.4"
+
+askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
+axum = "0.8.8" # web框架
+serde = { version = "1.0", features = ["derive"] }
+
+# 正则
+regex = "1"
