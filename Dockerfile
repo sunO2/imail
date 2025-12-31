@@ -34,8 +34,8 @@ FROM scratch AS runtime
 WORKDIR /app
 
 # 创建非 root 用户
-RUN addgroup -S app && \
-    adduser -S app -G app
+#RUN addgroup -S app && \
+#    adduser -S app -G app
 
 # 复制二进制文件（注意路径变化）
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/imail ./
