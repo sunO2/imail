@@ -1,6 +1,19 @@
 # ================ 第一阶段：编译 ================
 FROM rust:1.92.0 AS builder
 
+# Create appuser
+ENV USER=app
+ENV UID=10001
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    "${USER}"
+
 WORKDIR /app
 
 # 安装 musl 工具链和 C 编译器
@@ -30,6 +43,9 @@ FROM scratch AS runtime
 
 # 安装运行时依赖和 ca-certificates
 #RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
 
 WORKDIR /app
 
