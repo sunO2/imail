@@ -1,33 +1,49 @@
 # ================ 第一阶段：编译 ================
-# 使用官方 Rust 镜像作为 builder，包含 cargo、rustc 等完整工具链
-FROM rust:1.92.0 AS builder
+FROM rust:1.83 AS builder
 
-# 设置工作目录
 WORKDIR /app
 
-# 现在拷贝真正的源代码
-# COPY .config/config.toml ./.cargo/config.toml
-COPY . .
+# 安装 musl 工具链
+RUN rustup target add x86_64-unknown-linux-musl
 
-RUN cargo check
-# 编译真正的应用（--release 模式，优化并去掉调试信息）
-# touch src/main.rs 是为了强制重新编译（因为之前用了假文件）
-RUN cargo build --release
+# 先复制 Cargo 配置文件（利用 Docker 缓存）
+COPY Cargo.toml Cargo.lock ./
+
+# 创建一个空的 main.rs 来预编译依赖
+RUN mkdir src && \
+    echo "fn main() {}" > src/main.rs && \
+    cargo build --release --target x86_64-unknown-linux-musl && \
+    rm -rf src
+
+# 复制真正的源代码
+COPY src ./src
+COPY templates ./templates
+
+# 使用 musl 目标编译
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
 # ================ 第二阶段：运行时 ================
-# 使用极小的 alpine Linux 作为基础镜像（只有几 MB）
-# 如果你的应用需要 CA 证书或其他系统库，可以用 slim 版
-FROM debian:bookworm-slim AS runtime
+FROM alpine:3.20 AS runtime
 
-# 安装 HTTPS 需要的证书
-RUN apt-get update && \
-    apt-get install -y ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+# 安装运行时依赖和 ca-certificates
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
-# 从 builder 阶段拷贝编译好的二进制文件
-COPY --from=builder /app/target/release/imail ./
+# 创建非 root 用户
+RUN addgroup -S app && \
+    adduser -S app -G app
 
-# 设置容器启动时运行的命令
+# 复制二进制文件（注意路径变化）
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/imail ./
+
+# 设置文件权限
+RUN chown -R app:app /app
+
+# 切换到非 root 用户
+USER app
+
+# 暴露端口
+EXPOSE 3000
+
 CMD ["./imail"]

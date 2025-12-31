@@ -1,19 +1,22 @@
 [package]
 name = "imail"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
-imap = { version = "3.0.0-alpha.15" }  # 最新版检查 crates.io
+imap = { version = "3.0.0-alpha.15", default-features = false, features = ["native-tls"] }
 mail-parser = "0.11.1"
-lettre = "0.11.19" # smtp 邮件发送
-tokio = { version = "1", features = ["full"] }
-native-tls = "0.2"  # TLS 支持，或用 rustls-tls feature
+lettre = { version = "0.11.19", default-features = false, features = ["smtp-transport", "native-tls", "builder"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "macros", "sync"] }
 chrono = "0.4"
-
 askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
-axum = "0.8.8" # web框架
+axum = { version = "0.8.8",default-features = true,features = ["form"] }
 serde = { version = "1.0", features = ["derive"] }
-
-# 正则
 regex = "1"
+
+[profile.release]
+opt-level = "z"        # 优化体积
+lto = true            # 链接时优化
+codegen-units = 1     # 更好的优化
+strip = true          # 去除调试符号
+panic = "abort"       # 减小 panic 处理体积
