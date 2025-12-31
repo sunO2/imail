@@ -77,9 +77,15 @@ impl ImapListener {
             Ok(_) => {
                 if let Some(send_info) = self.fetch_latest_email(session) {
                     println!("✓ Email fetched successfully");
-                    // 通过 Channel 发送，而不是直接调用 mailer
-                    if let Err(e) = tx.blocking_send(send_info) {
-                        eprintln!("❌ Failed to send email event: {}", e);
+                    // 使用 try_send 而不是 blocking_send
+                    match tx.try_send(send_info) {
+                        Ok(_) => {}
+                        Err(mpsc::error::TrySendError::Full(_)) => {
+                            eprintln!("❌ Channel is full, dropping email event");
+                        }
+                        Err(mpsc::error::TrySendError::Closed(_)) => {
+                            eprintln!("❌ Channel closed, cannot send email event");
+                        }
                     }
                 } else {
                     eprintln!("❌ Failed to fetch email");
