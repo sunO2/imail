@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-imap = { version = "3.0.0-alpha.15", default-features = false, features = ["native-tls"] }
+imap = { version = "3.0.0-alpha.15", default-features = false, features = ["rustls-tls"] }
 mail-parser = "0.11.1"
-lettre = { version = "0.11.19", default-features = false, features = ["smtp-transport", "native-tls", "builder"] }
+lettre = { version = "0.11.19", default-features = false, features = ["smtp-transport", "rustls-tls", "builder"] }
 tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "macros", "sync"] }
 chrono = "0.4"
 askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
