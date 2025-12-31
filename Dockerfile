@@ -1,5 +1,5 @@
 # ================ 第一阶段：编译 ================
-FROM rust:1.83 AS builder
+FROM rust:1.92.0 AS builder
 
 WORKDIR /app
 
