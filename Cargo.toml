@@ -7,7 +7,7 @@ edition = "2024"
 imap = { version = "3.0.0-alpha.15", default-features = false, features = ["rustls-tls"] }
 mail-parser = "0.11.1"
 lettre = { version = "0.11.19", default-features = false, features = ["smtp-transport", "rustls-tls", "builder"] }
-tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "macros", "sync"] }
+tokio = { version = "1", features = ["full"] }
 chrono = "0.4"
 askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
 axum = { version = "0.8.8",default-features = true,features = ["form"] }
