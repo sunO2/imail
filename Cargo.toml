@@ -1,7 +1,7 @@
 [package]
 name = "imail"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 imap = { version = "3.0.0-alpha.15", default-features = false, features = ["native-tls"] }
