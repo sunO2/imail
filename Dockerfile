@@ -26,10 +26,10 @@ COPY templates ./templates
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
 # ================ 第二阶段：运行时 ================
-FROM alpine:3.20 AS runtime
+FROM scratch AS runtime
 
 # 安装运行时依赖和 ca-certificates
-RUN apk add --no-cache ca-certificates
+#RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
