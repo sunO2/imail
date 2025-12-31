@@ -57,7 +57,7 @@ WORKDIR /app
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/imail ./
 
 # 设置文件权限
-RUN chown -R app:app /app
+#RUN chown -R app:app /app
 
 # 切换到非 root 用户
 USER app
