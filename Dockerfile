@@ -3,8 +3,11 @@ FROM rust:1.92.0 AS builder
 
 WORKDIR /app
 
-# 安装 musl 工具链
-RUN rustup target add x86_64-unknown-linux-musl
+# 安装 musl 工具链和 C 编译器
+RUN rustup target add x86_64-unknown-linux-musl && \
+    apt-get update && \
+    apt-get install -y musl-tools musl-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # 先复制 Cargo 配置文件（利用 Docker 缓存）
 COPY Cargo.toml Cargo.lock ./
