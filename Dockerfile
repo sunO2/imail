@@ -21,7 +21,7 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 FROM scratch
 
 # 安装最小运行时依赖（CA 证书用于 HTTPS）
-RUN apk add --no-cache ca-certificates
+#RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
