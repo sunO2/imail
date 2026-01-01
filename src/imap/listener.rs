@@ -79,7 +79,7 @@ impl ImapListener {
                     println!("✓ Email fetched successfully");
                     // 在 blocking 线程中，可以使用 blocking_send
                     println!("📤 正在发送消息到通道");
-                    match tx.blocking_send(send_info) {
+                    match tx.try_send(send_info) {
                         Ok(_) => {
                             println!("✅ Email event sent to channel successfully");
                         }
