@@ -17,11 +17,10 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 # ================ 第二阶段：运行时 ================
 # 使用 scratch 作为基础镜像（最小化，约 0MB）
 # 如果需要 CA 证书，改用 alpine
-#FROM alpine:latest AS runtime
-FROM scratch
+FROM alpine:latest AS runtime
 
 # 安装最小运行时依赖（CA 证书用于 HTTPS）
-#RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
