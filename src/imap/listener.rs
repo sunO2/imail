@@ -77,14 +77,14 @@ impl ImapListener {
             Ok(_) => {
                 if let Some(send_info) = self.fetch_latest_email(session) {
                     println!("✓ Email fetched successfully");
-                    // 使用 try_send 而不是 blocking_send
-                    match tx.try_send(send_info) {
-                        Ok(_) => {}
-                        Err(mpsc::error::TrySendError::Full(_)) => {
-                            eprintln!("❌ Channel is full, dropping email event");
+                    // 在 blocking 线程中，可以使用 blocking_send
+                    println!("📤 正在发送消息到通道");
+                    match tx.blocking_send(send_info) {
+                        Ok(_) => {
+                            println!("✅ Email event sent to channel successfully");
                         }
-                        Err(mpsc::error::TrySendError::Closed(_)) => {
-                            eprintln!("❌ Channel closed, cannot send email event");
+                        Err(e) => {
+                            eprintln!("❌ Failed to send email event: {:?}", e);
                         }
                     }
                 } else {
@@ -93,7 +93,7 @@ impl ImapListener {
                 Ok(())
             }
             Err(e) => {
-                eprintln!("IDLE error: {:?}", e);
+                eprintln!("❌ IDLE error: {:?}", e);
                 Err(e)
             }
         }
@@ -155,42 +155,45 @@ impl ImapListener {
 
     /// 启动监听任务（异步）
     pub async fn start(self, tx: mpsc::Sender<SendInfo>) {
-        // 只在启动时连接和登录一次
-        match self.connect_and_login() {
-            Ok(mut session) => {
-                println!("✓ Successfully connected and logged in");
+        // 在独立的 blocking 线程中运行整个 IMAP 监听逻辑
+        tokio::task::spawn_blocking(move || {
+            // 只在启动时连接和登录一次
+            match self.connect_and_login() {
+                Ok(mut session) => {
+                    println!("✓ Successfully connected and logged in");
 
-                // 在同一个连接中循环监听
-                loop {
-                    match self.idle_listen(&mut session, &tx) {
-                        Ok(_) => {
-                            println!("IDLE session ended, restarting...");
-                        }
-                        Err(e) => {
-                            eprintln!("❌ IDLE error: {:?}", e);
-                            println!("Connection lost, reconnecting in 5 seconds...");
-                            tokio::time::sleep(Duration::from_secs(5)).await;
+                    // 在同一个连接中循环监听
+                    loop {
+                        match self.idle_listen(&mut session, &tx) {
+                            Ok(_) => {
+                                println!("IDLE session ended, restarting...");
+                            }
+                            Err(e) => {
+                                eprintln!("❌ IDLE error: {:?}", e);
+                                println!("Connection lost, reconnecting in 5 seconds...");
+                                std::thread::sleep(Duration::from_secs(5));
 
-                            // 连接断开，需要重新登录
-                            match self.connect_and_login() {
-                                Ok(new_session) => {
-                                    session = new_session;
-                                    println!("✓ Reconnected successfully");
-                                }
-                                Err(e) => {
-                                    eprintln!("❌ Reconnection failed: {:?}", e);
-                                    tokio::time::sleep(Duration::from_secs(5)).await;
+                                // 连接断开，需要重新登录
+                                match self.connect_and_login() {
+                                    Ok(new_session) => {
+                                        session = new_session;
+                                        println!("✓ Reconnected successfully");
+                                    }
+                                    Err(e) => {
+                                        eprintln!("❌ Reconnection failed: {:?}", e);
+                                        std::thread::sleep(Duration::from_secs(5));
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                Err(e) => {
+                    eprintln!("❌ Initial connection failed: {:?}", e);
+                    eprintln!("Please check your credentials and network connection");
+                }
             }
-            Err(e) => {
-                eprintln!("❌ Initial connection failed: {:?}", e);
-                eprintln!("Please check your credentials and network connection");
-            }
-        }
+        });
     }
 }
 

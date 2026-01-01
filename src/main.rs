@@ -80,6 +80,7 @@ async fn web_hook_2_email(Form(params): Form<WebHook2EmailParams>) -> String {
 
 /// 处理 IMAP 邮件事件的异步任务
 async fn handle_imap_events(mut rx: mpsc::Receiver<SendInfo>) {
+    println!("✅ 邮件处理器已启动");
     let mailer = SmtpMailer::new();
     while let Some(send_info) = rx.recv().await {
         println!("📨 收到待转发邮件: {}", send_info.send_title);
@@ -88,6 +89,7 @@ async fn handle_imap_events(mut rx: mpsc::Receiver<SendInfo>) {
             Err(e) => eprintln!("❌ 转发失败: {}", e),
         }
     }
+    println!("❌ handle_imap_events 任务结束");
 }
 
 #[tokio::main]
@@ -112,15 +114,18 @@ async fn main() {
     // 启动邮件转发处理器
     let email_handler = tokio::spawn(handle_imap_events(rx));
 
-    tokio::select! {
-        _ = imap_handler => {
-            println!("IMAP 服务已经停止");
-        }
-        _ = serve => {
-            println!("WebServer 服务已经停止");
-        }
-        _ = email_handler => {
-            println!("Email 处理器已经停止");
-        }
-    }
+    // tokio::select! {
+    //     _ = imap_handler => {
+    //         println!("IMAP 服务已经停止");
+    //     }
+    //     _ = serve => {
+    //         println!("WebServer 服务已经停止");
+    //     }
+    //     _ = email_handler => {
+    //         println!("Email 处理器已经停止");
+    //     }
+    // }
+     // 等待所有任务完成
+    let join_result = tokio::join!(imap_handler, serve, email_handler);
+    println!("所有服务已停止: {:?}", join_result);
 }
